@@ -1,4 +1,4 @@
-# Domain-Conditioned Transformer for Fully Test-time Adaptation
+#Flat Minima Dual Prompt: Addressing Stability and Plasticity in Continual Test-Time Adaptation
 
 This is the official project repository for [Flat Minima Dual Prompt: Addressing Stability and Plasticity in Continual Test-Time Adaptation]. This repository is built based on the [SAR 🔗](https://github.com/mr-eggplant/SAR).
 
