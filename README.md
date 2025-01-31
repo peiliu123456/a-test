@@ -12,7 +12,7 @@ This is the official project repository for [Flat Minima Dual Prompt: Addressing
 
 
 This repository contains code for evaluation on ImageNet-C,CIFAR10-C,CIFAR100-C, ImageNet-R, VisDA-2021, ACDC with ViT.
-For CIFAR10-C and CIFAR100-C, the pre-trained ViT-B model weights are from [MAE (CVPR 2024) 🔗] https://github.com/RanXu2000/continual-mae?tab=readme-ov-file.
+For CIFAR10-C and CIFAR100-C, the pre-trained ViT-B model weights are from [MAE (CVPR 2024) 🔗](https://github.com/RanXu2000/continual-mae?tab=readme-ov-file)
 For ImageNet-C,ImageNet-R and  VisDA-2021, the pre-trained ViT-B model weights are from timm .
 
 **Usage in CIFAR10-C and CIFAR100-C**:
