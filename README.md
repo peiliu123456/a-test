@@ -3,7 +3,7 @@
 This is the official project repository for [Flat Minima Dual Prompt: Addressing Stability and Plasticity in Continual Test-Time Adaptation]. This repository is built based on the [SAR 🔗](https://github.com/mr-eggplant/SAR).
 
 <p align="center">
-<img src="A.png" alt="DCT" width="100%" align=center />
+<img src="Introduction.png" alt="Dual Prompt" width="100%" align=center />
 </p>
 
 
