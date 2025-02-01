@@ -13,12 +13,12 @@ For CIFAR10-C and CIFAR100-C, the pre-trained ViT-B model weights are from [MAE 
 For ImageNet-C,ImageNet-R and  VisDA-2021, the pre-trained ViT-B model weights are from timm .
 
 **Dataset Download**:
-```
-[CIFAR100-C🔗] (https://zenodo.org/records/3555552)
-[CIFAR10-C🔗] (https://zenodo.org/records/2535967)
-[ImageNet-C🔗] (https://zenodo.org/records/2235448#.Yj2RO_co_mF)
-you also need to download [Robustbench](https://github.com/RobustBench/robustbench)
-```
+
+[CIFAR100-C 🔗](https://zenodo.org/records/3555552)
+[CIFAR10-C 🔗](https://zenodo.org/records/2535967)
+[ImageNet-C 🔗](https://zenodo.org/records/2235448#.Yj2RO_co_mF)
+you also need to download [Robustbench 🔗](https://github.com/RobustBench/robustbench)
+
 
 
 **Usage in ImageNet-C**:
