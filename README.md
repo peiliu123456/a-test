@@ -34,8 +34,8 @@ $$
 $$
 
 $$
-G(\cdot)=W_{up} \in R^{dim,r} ,W_{down} \in R^{r,dim};
-E(\cdot)=W_{up} \in R^{dim,r} ,W_{down} \in R^{r,dim};
+G(\cdot)=W_{down} \in R^{dim,r} ,W_{up} \in R^{r,dim};
+E(\cdot)=W_{down} \in R^{dim,r} ,W_{up} \in R^{r,dim};
 $$
 
 $$
