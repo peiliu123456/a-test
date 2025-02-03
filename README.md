@@ -26,7 +26,7 @@ In gnp.py, we implemented our Gradient Norm Penalty algorithm. In ./models/ours\
 For the domain-specific feature capturing network:
 
 $$
-C(\cdot)=W_{up} \in R^{dim,r} ,W_{down} \in R^{r,dim};
+C(\cdot)=W_{down} \in R^{dim,r} ,W_{up} \in R^{r,dim};
 $$
 
 $$
