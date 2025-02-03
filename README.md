@@ -19,6 +19,23 @@ For ImageNet-C,ImageNet-R and  VisDA-2021, the pre-trained ViT-B model weights a
 [ImageNet-C 🔗](https://zenodo.org/records/2235448#.Yj2RO_co_mF)
 
 
+**Details of ours code**:
+In \texttt{gnp.py}, we implemented our Gradient Norm Penalty algorithm. In \texttt{./models/ours\_transformer.py}, we implemented Dual Prompt. In \texttt{ours.py}, we implemented Representation Change Constraints.
+
+**Details of Dual Prompt**:
+For the domain-specific feature capturing network:
+
+$$
+G(\cdot) \in W_{\text{down}}^{\text{dim}, r_{G}}, W_{\text{up}}^{r_{G}, \text{dim}};
+$$
+
+And:
+
+$$
+\phi^{\ell} = W_{\text{up}}(W_{\text{down}}(z^{\ell})).
+$$
+
+
 
 **Usage in ImageNet-C**:
 ```
