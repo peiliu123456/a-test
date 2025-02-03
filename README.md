@@ -26,13 +26,17 @@ In \texttt{gnp.py}, we implemented our Gradient Norm Penalty algorithm. In \text
 For the domain-specific feature capturing network:
 
 $$
-G(\cdot) \in W_{\text{down}}^{\text{dim}, r_{G}}, W_{\text{up}}^{r_{G}, \text{dim}};
+\pi^{\ell} =C(Z^{\ell})= W_{\text{up}}(W_{\text{down}}(Z^{\ell})).
 $$
 
-And:
+$$
+G(\cdot)=W_{up} \in R^{dim,r} ,W_{down} \in R^{r,dim};
+E(\cdot)=W_{up} \in R^{dim,r} ,W_{down} \in R^{r,dim};
+$$
 
 $$
-\phi^{\ell} = W_{\text{up}}(W_{\text{down}}(z^{\ell})).
+G_{prompt}=G(Z-\pi^{\ell});
+E_{prompt}=G(\pi^{\ell})
 $$
 
 
