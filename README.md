@@ -24,9 +24,11 @@ In gnp.py, we implemented our Gradient Norm Penalty algorithm. In ./models/ours\
 
 **Details of Dual Prompt**:
 For the domain-specific feature capturing network:
+
 $$
 C(\cdot)=W_{up} \in R^{dim,r} ,W_{down} \in R^{r,dim};
 $$
+
 $$
 \pi^{\ell} =C(Z^{\ell})= W_{\text{up}}(W_{\text{down}}(Z^{\ell})).
 $$
