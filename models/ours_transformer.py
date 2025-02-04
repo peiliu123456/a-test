@@ -24,11 +24,11 @@ class OURS_Transformer(timm.models.vision_transformer.VisionTransformer):
         self.prompt_deep = args.prompt_deep
         self.prompt_emb = torch.zeros(self.dual_prompt_tokens, prompt_dim).cuda()
         self.domain_predictors = nn.ModuleList([
-            HighRank(in_dim=prompt_dim, r2=64, out_dim=prompt_dim) for _ in range(self.num_layers)])
+            Rank(in_dim=prompt_dim, r=64, out_dim=prompt_dim) for _ in range(self.num_layers)])
         self.G_predictors = nn.ModuleList([
-            LowRank(in_dim=prompt_dim, r=4, out_dim=prompt_dim) for _ in range(self.num_layers)])
+            Rank(in_dim=prompt_dim, r=4, out_dim=prompt_dim) for _ in range(self.num_layers)])
         self.E_predictors = nn.ModuleList([
-            HighRank(in_dim=prompt_dim, r2=64, out_dim=prompt_dim) for _ in range(self.num_layers)])
+            Rank(in_dim=prompt_dim, r=64, out_dim=prompt_dim) for _ in range(self.num_layers)])
 
     def save_gradients(self, index):
         def hook(module, grad_input, grad_output):
@@ -122,22 +122,8 @@ class Predictor(nn.Module):
         return x
 
 
-class HighRank(nn.Module):
-    def __init__(self, in_dim, r2, out_dim):
-        super().__init__()
-        self.act = nn.GELU()
-        self.vida_down2 = nn.Linear(in_dim, r2, bias=False)
-        self.vida_up2 = nn.Linear(r2, out_dim, bias=False)
-        nn.init.normal_(self.vida_down2.weight, std=1 / r2 ** 2)
-        nn.init.zeros_(self.vida_up2.weight)
 
-    def forward(self, x):
-        x = self.act(self.vida_down2(x))
-        x = self.act(self.vida_up2(x))
-        return x
-
-
-class LowRank(nn.Module):
+class Rank(nn.Module):
     def __init__(self, in_dim, r, out_dim):
         super().__init__()
         self.act = nn.GELU()
