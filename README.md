@@ -56,7 +56,7 @@ python main.py --method cotta --test_batch_size 64 --lr 1e-4  --num_classes 1000
 ```
 **Usage in ImageNet-C BATCH SIZE=1**:
 ```
-python main.py --method ours --test_batch_size 1 --lr 1e-6 --prompt_lr 1e-7 --num_classes 1000 --GNP  --alpha 0.8 --rho=0.01 --device 0  --data_corruption XX
+python main.py --method ours --test_batch_size 1 --lr 5e-6 --prompt_lr 1e-7 --num_classes 1000 --GNP  --alpha 0.8 --rho=0.01 --device 0  --data_corruption XX
 python main.py --method dct --test_batch_size 1 --lr 1e-3  --num_classes 1000 --device 0  --data_corruption XX
 python main.py --method dpal --test_batch_size 1 --lr 1e-3  --num_classes 1000 --device 0  --data_corruption XX
 python main.py --method sar --test_batch_size 1 --lr 1e-3  --num_classes 1000 --device 0  --data_corruption XX
