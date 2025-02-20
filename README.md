@@ -68,7 +68,6 @@ python main.py --method cotta --test_batch_size 1 --lr 1e-4  --num_classes 1000 
 
 **Usage in CIFAR10-C and CIFAR100-C**:
 ```
-if you want to use gradient norm penalty, you can add --GNP
 python cifar_main.py --method ours --test_batch_size 32 --lr 1e-2 --prompt_lr 1e-6 --num_classes 10 --GNP --alpha 0.8 --rho 0.01 --device 0
 python cifar_main.py --method ours --test_batch_size 32 --lr 1e-2 --prompt_lr 1e-6 --num_classes 100 --GNP --alpha 0.8 --rho 0.01 --device 0
 
