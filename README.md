@@ -39,10 +39,10 @@ $$
 
 $$
 G_{prompt}=G(Z-\pi^{\ell});
-E_{prompt}=G(\pi^{\ell})
+E_{prompt}=G(\pi^{\ell});
+$$
 
 The error in the visualization of G\_prompt in the paper has been corrected. The issue was caused by incorrectly importing another file instead of defocus. This has now been fixed. Thank you.
-$$
 <div style="display: flex; justify-content: center; gap: 20px;">
   <img src="E_prompt (2).png" alt="Dual Prompt" width="48%" />
   <img src="g_prompt_3d.png" alt="Dual Prompt" width="48%" />
