@@ -42,16 +42,10 @@ G_{prompt}=G(Z-\pi^{\ell});
 E_{prompt}=G(\pi^{\ell});
 $$
 
-\documentclass{article}
-\usepackage{xcolor}
+## **Correction of G_prompt Visualization Error**
 
-\begin{document}
+**<span style="color:red">The error in the visualization of G_prompt in the paper has been corrected. The issue was caused by incorrectly importing another file instead of defocus. This has now been fixed. Thank you.</span>**
 
-\section*{\textbf{Correction of G\_prompt Visualization Error}}
-
-\textbf{\textcolor{red}{The error in the visualization of G\_prompt in the paper has been corrected. The issue was caused by incorrectly importing another file instead of defocus. This has now been fixed. Thank you.}}
-
-\end{document}
 
 <div style="display: flex; justify-content: center; gap: 20px;">
   <img src="E_prompt (2).png" alt="Dual Prompt" width="48%" />
