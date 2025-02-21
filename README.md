@@ -41,12 +41,11 @@ $$
 G_{prompt}=G(Z-\pi^{\ell});
 E_{prompt}=G(\pi^{\ell})
 $$
-<p align="center">
-<img src="E_prompt (2).png" alt="Dual Prompt" width="100%" align=center />
-</p>
-<p align="center">
-<img src="g_prompt_3d.png" alt="Dual Prompt" width="100%" align=center />
-</p>
+<div style="display: flex; justify-content: center; gap: 20px;">
+  <img src="E_prompt (2).png" alt="Dual Prompt" width="48%" />
+  <img src="g_prompt_3d.png" alt="Dual Prompt" width="48%" />
+</div>
+
 
 
 
