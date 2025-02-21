@@ -44,7 +44,7 @@ $$
 
 ## **Correction of G_prompt Visualization Error**
 
-**<span style="color:red">The error in the visualization of G_prompt in the paper has been corrected. The issue was caused by incorrectly importing another file instead of defocus. This has now been fixed. Thank you.</span>**
+**<font color="red">The error in the visualization of G_prompt in the paper has been corrected. The issue was caused by incorrectly importing another file instead of defocus. This has now been fixed. Thank you.</font>**
 
 
 <div style="display: flex; justify-content: center; gap: 20px;">
