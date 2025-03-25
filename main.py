@@ -356,17 +356,17 @@ if __name__ == '__main__':
         ad_optimizer = torch.optim.SGD(prompt_params, momentum=0.9)
         adapt_net = dpal.DPAL(net, args, optimizer, ad_optimizer, margin_e0=args.sar_margin_e0)
     elif args.method == 'ours':
-        if args.GNP == False:
+        if args.GNP == True:
             net = ours.configure_model(net)
             params, param_names = ours.collect_params(net, args)
             logger.info(param_names)
-            optimizer = torch.optim.SGD(params, momentum=0.9)
+            optimizer = GNP(params, torch.optim.SGD, momentum=0.9, rho=args.rho, alpha=args.alpha)
             adapt_net = ours.OURS(net, args, optimizer, margin_e0=args.sar_margin_e0)
         else:
             net = ours.configure_model(net)
             params, param_names = ours.collect_params(net, args)
             logger.info(param_names)
-            optimizer = GNP(params, torch.optim.SGD, momentum=0.9, rho=args.rho, alpha=args.alpha)
+            optimizer = SAM(params, torch.optim.SGD, momentum=0.9)
             adapt_net = ours.OURS(net, args, optimizer, margin_e0=args.sar_margin_e0)
     elif args.method == 'prompt_sar':
         net = prompt_sar.configure_model(net)
