@@ -14,6 +14,7 @@ import torch
 import torch.nn.functional as F
 import tent, sar, dct, dpal, ours, prompt_sar
 from sam import SAM
+from gnp import GNP
 import timm
 import models.Res as Resnet
 from models.dct_attention import DCT_Attention
@@ -61,7 +62,6 @@ def validate(val_loader, model, args, repeat, mode='eval'):
             progress.display(counter)
         if counter > 10 and args.debug:
             break
-
     return top1.avg, top5.avg
 
 
