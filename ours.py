@@ -249,7 +249,7 @@ def load_model_and_optimizer(model, optimizer, model_state, optimizer_state, ):
 
 
 def configure_model(model):
-    """Configure model for use with Dual Prompt."""
+    """Configure model for use with Balance Prompt."""
     # train mode, because DPAL optimizes the model to minimize entropy
     model.train()
     model.requires_grad_(False)
@@ -268,15 +268,15 @@ def configure_model(model):
 
 
 def check_model(model):
-    """Check model for compatability with Dual Prompt."""
+    """Check model for compatability with Balance Prompt."""
     is_training = model.training
-    assert is_training, "Dual Prompt needs train mode: call model.train()"
+    assert is_training, "Balance Prompt needs train mode: call model.train()"
     param_grads = [p.requires_grad for p in model.parameters()]
     has_any_params = any(param_grads)
     has_all_params = all(param_grads)
-    assert has_any_params, "Dual Prompt needs params to update: " \
+    assert has_any_params, "Balance Prompt needs params to update: " \
                            "check which require grad"
-    assert not has_all_params, "Dual Prompt should not update all params: " \
+    assert not has_all_params, "Balance Prompt should not update all params: " \
                                "check which require grad"
     has_norm = any([isinstance(m, (nn.BatchNorm2d, nn.LayerNorm, nn.GroupNorm)) for m in model.modules()])
-    assert has_norm, "Dual Prompt needs normalization layer parameters for its optimization"
+    assert has_norm, "Balance Prompt needs normalization layer parameters for its optimization"
