@@ -1,4 +1,5 @@
-This is the official project repository for [Balance Prompt Tuning for Continual Test-Time Adaptation]. This repository is built based on the [DPAL (ECCV 2024) 🔗](https://github.com/yushuntang/DPAL), [DCT (MM 2024) 🔗](https://github.com/yushuntang/DCT) and [SAR (ICLR 2023) 🔗](https://github.com/mr-eggplant/SAR).
+## This is the official project repository for Balance Prompt Tuning for Continual Test-Time Adaptation. 
+This repository is built based on the [DPAL (ECCV 2024) 🔗](https://github.com/yushuntang/DPAL), [DCT (MM 2024) 🔗](https://github.com/yushuntang/DCT) and [SAR (ICLR 2023) 🔗](https://github.com/mr-eggplant/SAR).
 <p align="center">
 <img src="overall.jpg" alt="Overall of Balance Prompt Tuning" width="100%" align=center />
 </p>
