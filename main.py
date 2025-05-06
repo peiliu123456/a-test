@@ -15,7 +15,7 @@ import torch
 import torch.nn.functional as F
 import tent, sar, dct, dpal, ours, prompt_sar, cotta
 from sam import SAM
-from gnp import GNP
+from ngap import NGAP
 import timm
 import models.Res as Resnet
 from models.dct_attention import DCT_Attention
@@ -51,14 +51,7 @@ def validate(val_loader, model, args, repeat, mode='eval'):
     end = time.time()
     for i, dl in enumerate(val_loader):
         images, target = dl[0].cuda(), dl[1].cuda()
-        if repeat:
-            with torch.no_grad():
-                if args.method in ['dpal', 'ours']:
-                    output, _ = model.forward_repeat(images)
-                else:
-                    output = model.forward_repeat(images)
-        else:
-            output = model(images)
+        output = model(images)
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
@@ -226,7 +219,7 @@ def get_args():
     parser.add_argument('--prompt_lr', default=1e-2, type=float, help='prompt_lr')
     parser.add_argument('--predictor_lr', default=1e-2, type=float, help='predictor_lr')
     parser.add_argument('--prompt_deep', type=int, default=1, help='prompt_deep')
-    parser.add_argument('--GNP', action='store_true', help='use GNP')
+
     parser.add_argument('--dual_prompt_tokens', default=2, type=int, help='dual_prompt_tokens')
     parser.add_argument('--num_prompt_tokens', default=1, type=int, help='num_prompt_tokens')
     parser.add_argument('--img_size', default=224, type=int, help='vit_image_size')
@@ -356,18 +349,12 @@ if __name__ == '__main__':
         ad_optimizer = torch.optim.SGD(prompt_params, momentum=0.9)
         adapt_net = dpal.DPAL(net, args, optimizer, ad_optimizer, margin_e0=args.sar_margin_e0)
     elif args.method == 'ours':
-        if args.GNP == True:
-            net = ours.configure_model(net)
-            params, param_names = ours.collect_params(net, args)
-            logger.info(param_names)
-            optimizer = GNP(params, torch.optim.SGD, momentum=0.9, rho=args.rho, alpha=args.alpha)
-            adapt_net = ours.OURS(net, args, optimizer, margin_e0=args.sar_margin_e0)
-        else:
-            net = ours.configure_model(net)
-            params, param_names = ours.collect_params(net, args)
-            logger.info(param_names)
-            optimizer = SAM(params, torch.optim.SGD, momentum=0.9)
-            adapt_net = ours.OURS(net, args, optimizer, margin_e0=args.sar_margin_e0)
+        net = ours.configure_model(net)
+        params, param_names = ours.collect_params(net, args)
+        logger.info(param_names)
+        optimizer = NGAP(params, torch.optim.SGD, momentum=0.9, rho=args.rho, alpha=args.alpha)
+        adapt_net = ours.OURS(net, args, optimizer, margin_e0=args.sar_margin_e0)
+
     elif args.method == 'prompt_sar':
         net = prompt_sar.configure_model(net)
         params, param_names = prompt_sar.collect_params(net, args)
@@ -439,22 +426,3 @@ if __name__ == '__main__':
         acc5s.append(top5.item())
         logger.info(f"acc1s are {acc1s}")
         logger.info(f"acc5s are {acc5s}")
-        if args.repeat:
-            repeat_model = deepcopy(adapt_net)
-            repeat_model.eval()
-            acc1s_repeat = []
-            logger.info(f"Now, start to repeat!")
-            for repeat_c in common_corruptions:
-                args.corruption = repeat_c
-                val_dataset, val_loader = prepare_test_data(args)
-                val_dataset.switch_mode(True, False)
-                top1, top5 = validate(val_loader, repeat_model, args, mode='eval', repeat=True)
-                # logger.info(
-                #     f"Result under {repeat_c}. The adaptation accuracy of {args.method} is top1: {top1:.5f} and top5: {top5:.5f}")
-                acc1s_repeat.append(top1.item())
-                avg1_repeat = sum(acc1s_repeat) / len(acc1s_repeat)
-                logger.info(f"Repeat Average are {avg1_repeat}")
-                # logger.info(f"Repeat acc1s are {acc1s_repeat}")
-                if repeat_c == corrupt:
-                    del repeat_model
-                    break
