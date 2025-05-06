@@ -24,16 +24,17 @@ class OURS_Transformer(timm.models.vision_transformer.VisionTransformer):
         self.prompt_deep = args.prompt_deep
         self.prompt_emb = torch.zeros(self.dual_prompt_tokens, prompt_dim).cuda()
         self.domain_predictors = nn.ModuleList([
-            Rank(in_dim=prompt_dim, r=64, out_dim=prompt_dim) for _ in range(self.num_layers)])
+            LoRA(in_dim=prompt_dim, r=64, out_dim=prompt_dim) for _ in range(self.num_layers)])
         self.G_predictors = nn.ModuleList([
-            Rank(in_dim=prompt_dim, r=4, out_dim=prompt_dim) for _ in range(self.num_layers)])
+            LoRA(in_dim=prompt_dim, r=4, out_dim=prompt_dim) for _ in range(self.num_layers)])
         self.E_predictors = nn.ModuleList([
-            Rank(in_dim=prompt_dim, r=64, out_dim=prompt_dim) for _ in range(self.num_layers)])
+            LoRA(in_dim=prompt_dim, r=64, out_dim=prompt_dim) for _ in range(self.num_layers)])
 
     def save_gradients(self, index):
         def hook(module, grad_input, grad_output):
             # Save gradients of the specific block
             self.block_gradients[index] = grad_output[0]
+
         return hook
 
     def clear_gradients(self):
@@ -71,18 +72,18 @@ class OURS_Transformer(timm.models.vision_transformer.VisionTransformer):
                 G_prompt = self.G_predictors[i](
                     hidden_states[:, self.dual_prompt_tokens, ] - domain[:, self.dual_prompt_tokens, ]).unsqueeze(dim=1)
 
-                Dual_prompt = torch.cat((E_prompt, G_prompt), dim=1)
-                Dual_prompt = Dual_prompt * (32 ** 2 / 384 ** 2) if self.args.num_classes in [10, 100] else Dual_prompt
+                Balance_Prompt = torch.cat((E_prompt, G_prompt), dim=1)
+                Balance_Prompt = Balance_Prompt * (32 ** 2 / 384 ** 2) if self.args.num_classes in [10, 100] else Balance_Prompt
                 hidden_states = hidden_states - domain
                 hidden_states = torch.cat(
-                    (Dual_prompt, hidden_states[:, self.dual_prompt_tokens:, :]), dim=1)
+                    (Balance_Prompt, hidden_states[:, self.dual_prompt_tokens:, :]), dim=1)
                 hidden_states = self.blocks[i](hidden_states)
             hidden_layers.append(hidden_states)
         return hidden_states, hidden_layers
 
     def forward_features(self, x, importance):
-        x = self.patch_embed(x)  # 把 x(64,224,224,3)patch ->>(64,198,768)
-        x = self._pos_embed(x)  # 增加位置信息
+        x = self.patch_embed(x)
+        x = self._pos_embed(x)
         if self.prompt_deep:
             x, hidden_layer = self.forward_deep_prompt(x, importance)
         else:
@@ -91,7 +92,7 @@ class OURS_Transformer(timm.models.vision_transformer.VisionTransformer):
         return x, hidden_layer
 
     def forward_head(self, x, pre_logits: bool = False):
-        if self.global_pool:  # 使用cls token 而不使用 avg pool
+        if self.global_pool:
             x = x[:, self.dual_prompt_tokens:].mean(dim=1) if self.global_pool == 'avg' else x[:,
                                                                                              self.dual_prompt_tokens]
         x = self.fc_norm(x)
@@ -103,36 +104,18 @@ class OURS_Transformer(timm.models.vision_transformer.VisionTransformer):
         return x, hidden_layer
 
 
-class Predictor(nn.Module):
-    def __init__(self, in_dim, hidden_dim, out_dim, drop=0.):
-        super().__init__()
-        self.fc1 = nn.Linear(in_dim, hidden_dim)
-        self.act = nn.GELU()
-        self.fc2 = nn.Linear(hidden_dim, out_dim)
-        self.drop1 = nn.Dropout(drop)
-        self.drop2 = nn.Dropout(drop)
-
-    def forward(self, x):
-        x = self.fc1(x)
-        x = self.act(x)
-        x = self.drop1(x)
-        x = self.fc2(x)
-        x = self.act(x)
-        x = self.drop2(x)
-        return x
 
 
-
-class Rank(nn.Module):
+class LoRA(nn.Module):
     def __init__(self, in_dim, r, out_dim):
         super().__init__()
         self.act = nn.GELU()
-        self.vida_down = nn.Linear(in_dim, r, bias=False)
-        self.vida_up = nn.Linear(r, out_dim, bias=False)
-        nn.init.normal_(self.vida_down.weight, std=1 / r ** 2)
-        nn.init.zeros_(self.vida_up.weight)
+        self.lora_B = nn.Linear(in_dim, r, bias=False)
+        self.lora_A = nn.Linear(r, out_dim, bias=False)
+        nn.init.normal_(self.lora_B.weight, std=1 / r ** 2)
+        nn.init.zeros_(self.lora_A.weight)
 
     def forward(self, x):
-        x = self.act(self.vida_down(x))
-        x = self.act(self.vida_up(x))
+        x = self.act(self.lora_B(x))
+        x = self.act(self.lora_A(x))
         return x
