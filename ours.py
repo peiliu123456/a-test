@@ -47,40 +47,7 @@ def update_ema_variables(ema_model, model, alpha_teacher, name_filter=None):
     return ema_model
 
 
-def get_tta_transforms(gaussian_std: float = 0.005, soft=False, clip_inputs=False):
-    img_shape = (224, 224, 3)
-    n_pixels = img_shape[0]
-
-    clip_min, clip_max = 0.0, 1.0
-
-    p_hflip = 0.5
-
-    tta_transforms = transforms.Compose([
-        my_transforms.Clip(0.0, 1.0),
-        my_transforms.ColorJitterPro(
-            brightness=[0.8, 1.2] if soft else [0.6, 1.4],
-            contrast=[0.85, 1.15] if soft else [0.7, 1.3],
-            saturation=[0.75, 1.25] if soft else [0.5, 1.5],
-            hue=[-0.03, 0.03] if soft else [-0.06, 0.06],
-            gamma=[0.85, 1.15] if soft else [0.7, 1.3]
-        ),
-        transforms.Pad(padding=int(n_pixels / 2), padding_mode='edge'),
-        transforms.RandomAffine(
-            degrees=[-8, 8] if soft else [-15, 15],
-            translate=(1 / 16, 1 / 16),
-            scale=(0.95, 1.05) if soft else (0.9, 1.1),
-            shear=None,
-        ),
-        transforms.GaussianBlur(kernel_size=5, sigma=[0.001, 0.25] if soft else [0.001, 0.5]),
-        transforms.CenterCrop(size=n_pixels),
-        transforms.RandomHorizontalFlip(p=p_hflip),
-        my_transforms.GaussianNoise(0, gaussian_std),
-        my_transforms.Clip(clip_min, clip_max)
-    ])
-    return tta_transforms
-
-
-def pod(list_attentions_a, list_attentions_b, normalize=True, feature_distil_factor=None):
+def ctfg(list_attentions_a, list_attentions_b, normalize=True, feature_distil_factor=None):
     assert len(list_attentions_a) == len(list_attentions_b)
     loss = torch.tensor(0.).cuda()
     for ii, (a, b) in enumerate(zip(list_attentions_a, list_attentions_b)):
@@ -113,7 +80,6 @@ class OURS(nn.Module):
         self.model = model
         self.old_model0 = None
         self.old_model1 = None
-        # self.model_ema = deepcopy(self.model)
         self.optimizer = optimizer
         self.steps = steps
         assert steps > 0, "DPAL requires >= 1 step(s) to forward and update"
@@ -127,7 +93,6 @@ class OURS(nn.Module):
         self.model_state, self.optimizer_state = \
             copy_model_and_optimizer(self.model, self.optimizer)
         self.mask = None
-        self.transform = get_tta_transforms()
 
     def reset(self):
         if self.model_state is None or self.optimizer_state is None:
@@ -179,63 +144,37 @@ class OURS(nn.Module):
         return loss
 
     def forward_and_adapt_dual(self, x):
-        """Forward and adapt model input data.
-        Measure entropy of the model prediction, take gradients, and update params.
-        """
         if self.freq % 2 == 0:
             self.old_model0 = deepcopy(self.model)
         else:
             self.old_model1 = deepcopy(self.model)
 
-        if self.args.GNP:
-            outputs, hidden_layer = self.model(x, self.importance)
-            loss = self.getloss(outputs)
-            if self.freq != 0:
-                with torch.no_grad():
-                    _, old_hidden_layer = self.old_model1(x,
-                                                          self.importance) if self.freq % 2 == 0 else self.old_model0(x,
-                                                                                                                      self.importance)
-                loss += pod(hidden_layer, old_hidden_layer, feature_distil_factor=self.importance)
-            loss.backward()
-            self.optimizer.first_step(zero_grad=True)
+        outputs, hidden_layer = self.model(x, self.importance)
+        loss = self.getloss(outputs)
+        if self.freq != 0:
+            with torch.no_grad():
+                _, old_hidden_layer = self.old_model1(x,
+                                                      self.importance) if self.freq % 2 == 0 else self.old_model0(x,
+                                                                                                                  self.importance)
+            loss += ctfg(hidden_layer, old_hidden_layer, feature_distil_factor=self.importance)
+        loss.backward()
+        self.optimizer.first_step(zero_grad=True)
 
-            outputs_second, hidden_layer = self.model(x, self.importance)
-            loss_second = self.getloss(outputs_second)
-            if self.freq != 0: loss_second += pod(hidden_layer, old_hidden_layer, feature_distil_factor=self.importance)
-            self.freq = self.freq + 1
-            loss_second.backward()
-            self.normalize_importance()
-            self.optimizer.second_step(zero_grad=True)
-            reset_flag = False
-            if self.ema is not None:
-                em = 0.15 if self.args.num_classes == 1000 else 0.01
-                if self.ema < em:
-                    print(f"ema < {em}, now reset the model")
-                    reset_flag = True
+        outputs_second, hidden_layer = self.model(x, self.importance)
+        loss_second = self.getloss(outputs_second)
+        if self.freq != 0: loss_second += ctfg(hidden_layer, old_hidden_layer, feature_distil_factor=self.importance)
+        self.freq = self.freq + 1
+        loss_second.backward()
+        self.normalize_importance()
+        self.optimizer.second_step(zero_grad=True)
+        reset_flag = False
+        if self.ema is not None:
+            em = 0.15 if self.args.num_classes == 1000 else 0.01
+            if self.ema < em:
+                print(f"ema < {em}, now reset the model")
+                reset_flag = True
 
-            return outputs, reset_flag
-        else:
-            outputs, hidden_layer = self.model(x, self.importance)
-            loss = self.getloss(outputs)
-            if self.freq != 0:
-                with torch.no_grad():
-                    _, old_hidden_layer = self.old_model1(x,
-                                                          self.importance) if self.freq % 2 == 0 else self.old_model0(x,
-                                                                                                                      self.importance)
-                loss += pod(hidden_layer, old_hidden_layer, feature_distil_factor=self.importance)
-            self.freq = self.freq + 1
-            loss.backward()
-            self.normalize_importance()
-            self.optimizer.step()
-            self.optimizer.zero_grad()
-            reset_flag = False
-            if self.ema is not None:
-                em = 0.15 if self.args.num_classes == 1000 else 0.01
-                if self.ema < em:
-                    print(f"ema < {em}, now reset the model")
-                    reset_flag = True
-
-            return outputs, reset_flag
+        return outputs, reset_flag
 
     def forward_repeat(self, x):
         with torch.no_grad():
@@ -252,8 +191,8 @@ class OURS(nn.Module):
             min_values, _ = gradients.min(dim=1, keepdim=True)
             max_values, _ = gradients.max(dim=1, keepdim=True)
             range_values = max_values - min_values
-            range_values[range_values == 0] = 1e-6  # 避免出现除零
-            # total_importance = gradients.mean(dim=1).view(-1, 1)
+            range_values[range_values == 0] = 1e-6
+
             if self.importance is None:
                 self.importance = (gradients - min_values) / range_values
             else:
@@ -272,14 +211,14 @@ def collect_params(model, args):
     """
     params = []
     names = []
-    seen_params = set()  # 用于去除重复的参数
+    seen_params = set()
     for nm, m in model.named_modules():
-        # 对 BatchNorm、LayerNorm 和 GroupNorm 层处理
+
         if isinstance(m, (nn.BatchNorm2d, nn.LayerNorm, nn.GroupNorm)):
             for np, p in m.named_parameters():
-                if np in ['weight', 'bias']:  # weight 是 scale，bias 是 shift
+                if np in ['weight', 'bias']:
                     p.requires_grad_(True)
-                    if id(p) not in seen_params:  # 检查参数是否已经加入
+                    if id(p) not in seen_params:
                         params += [{'params': p, 'lr': args.lr}]
                         seen_params.add(id(p))
                         names.append(f"{nm}.{np}")
