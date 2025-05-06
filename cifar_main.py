@@ -14,7 +14,7 @@ import torch
 import torch.nn.functional as F
 import tent, sar, dct, dpal, ours, prompt_sar
 from sam import SAM
-from gnp import GNP
+from ngap import NGAP
 import timm
 import models.Res as Resnet
 from models.dct_attention import DCT_Attention
@@ -45,14 +45,7 @@ def validate(val_loader, model, args, repeat, mode='eval'):
                                                   args.test_batch_size]
         x_curr = torch.nn.functional.interpolate(x_curr, size=(args.img_size, args.img_size),
                                                  mode='bilinear', align_corners=False)
-        if repeat:
-            with torch.no_grad():
-                if args.method in ['dpal', 'ours']:
-                    output, _ = model.forward_repeat(x_curr)
-                else:
-                    output = model.forward_repeat(x_curr)
-        else:
-            output = model(x_curr)
+        output = model(x_curr)
         acc1, acc5 = accuracy(output, y_curr, topk=(1, 5))
         top1.update(acc1[0], x_curr.size(0))
         top5.update(acc5[0], x_curr.size(0))
@@ -113,10 +106,8 @@ def get_args():
     parser.add_argument('--prompt_lr', default=1e-2, type=float, help='prompt_lr')
     parser.add_argument('--predictor_lr', default=1e-2, type=float, help='predictor_lr')
     parser.add_argument('--prompt_deep', type=int, default=1, help='prompt_deep')
-    parser.add_argument('--GNP', action='store_true', help='use GNP')
-    parser.add_argument('--alpha', default=0.8, type=float, help='use to GNP')
-    parser.add_argument('--rho', default=0.01, type=float, help='use to GNP')
-
+    parser.add_argument('--alpha', default=0.8, type=float, help='')
+    parser.add_argument('--rho', default=0.01, type=float, help='')
     parser.add_argument('--dual_prompt_tokens', default=2, type=int, help='dual_prompt_tokens')
     parser.add_argument('--num_prompt_tokens', default=1, type=int, help='num_prompt_tokens')
     parser.add_argument('--img_size', default=384, type=int, help='vit_image_size')
@@ -236,18 +227,12 @@ if __name__ == '__main__':
         ad_optimizer = torch.optim.SGD(prompt_params, momentum=0.9)
         adapt_net = dpal.DPAL(net, args, optimizer, ad_optimizer, margin_e0=args.sar_margin_e0)
     elif args.method == 'ours':
-        if args.GNP == True:
-            net = ours.configure_model(net)
-            params, param_names = ours.collect_params(net, args)
-            logger.info(param_names)
-            optimizer = GNP(params, torch.optim.SGD, momentum=0.9, rho=args.rho, alpha=args.alpha)
-            adapt_net = ours.OURS(net, args, optimizer, margin_e0=args.sar_margin_e0)
-        else:
-            net = ours.configure_model(net)
-            params, param_names = ours.collect_params(net, args)
-            logger.info(param_names)
-            optimizer = SAM(params, torch.optim.SGD, momentum=0.9)
-            adapt_net = ours.OURS(net, args, optimizer, margin_e0=args.sar_margin_e0)
+        net = ours.configure_model(net)
+        params, param_names = ours.collect_params(net, args)
+        logger.info(param_names)
+        optimizer = NGAP(params, torch.optim.SGD, momentum=0.9, rho=args.rho, alpha=args.alpha)
+        adapt_net = ours.OURS(net, args, optimizer, margin_e0=args.sar_margin_e0)
+
     elif args.method == 'prompt_sar':
         net = prompt_sar.configure_model(net)
         params, param_names = prompt_sar.collect_params(net, args)
