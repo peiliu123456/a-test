@@ -271,19 +271,4 @@ if __name__ == '__main__':
         acc5s.append(top5.item())
         logger.info(f"acc1s are {acc1s}")
         logger.info(f"acc5s are {acc5s}")
-        if args.repeat:
-            logger.info(f"Now, start to repeat!")
-            repeat_model = deepcopy(adapt_net)
-            repeat_model.eval()
-            acc1s_repeat = []
-            for repeat_c in common_corruptions:
-                load_func = {10: load_cifar10c, 100: load_cifar100c}
-                x_test, y_test = load_func[args.num_classes](10000, 5, "./data", False, [repeat_c])
-                val_loader = {'x': x_test, 'y': y_test}
-                top1, top5 = validate(val_loader, repeat_model, args, mode='eval', repeat=True)
-                acc1s_repeat.append(top1.item())
-                avg1 = sum(acc1s_repeat) / len(acc1s_repeat)
-                if repeat_c == corrupt:
-                    logger.info(f"Repeat Average are {avg1}")
-                    del repeat_model
-                    break
+      
