@@ -1,7 +1,7 @@
-## This is the official project repository for Balance Prompt Tuning for Continual Test-Time Adaptation. 
+## This is the official project repository for Balanced Prompt Tuning for Continual Test-Time Adaptation. 
 This repository is built based on the [DPAL (ECCV 2024) 🔗](https://github.com/yushuntang/DPAL), [DCT (MM 2024) 🔗](https://github.com/yushuntang/DCT) and [SAR (ICLR 2023) 🔗](https://github.com/mr-eggplant/SAR).
 <p align="center">
-<img src="overall.jpg" alt="Overall of Balance Prompt Tuning" width="100%" align=center />
+<img src="overall.jpg" alt="Overall of Balanced Prompt Tuning" width="100%" align=center />
 </p>
 
 
@@ -18,7 +18,7 @@ For ImageNet-C,ImageNet-R and  VisDA-2021, the pre-trained ViT-B model weights a
 
 
 **Details of ours code**:
-In NGAP.py, we implemented our Noisy Gradient Adaptive Penalty algorithm. In ./models/ours\_transformer.py, we implemented Balance Prompt. In ours.py, we implemented Cross-Time Feature Guidance.
+In NGAP.py, we implemented our Noisy Gradient Adaptive Penalty algorithm. In ./models/ours\_transformer.py, we implemented Balanced Prompt. In ours.py, we implemented Cross-Time Feature Guidance.
 
 **Usage in ImageNet-C**:
 ```
